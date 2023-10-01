@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_gradient"
+    android:background="@drawable/sign_in_gradient"
     tools:context=".SignUpActivity">
 
     <EditText
@@ -12,8 +12,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="100dp"
-        android:layout_marginTop="88dp"
+        android:layout_marginTop="85dp"
         android:ems="10"
+        android:gravity="center"
         android:hint="Username"
         android:inputType="textPersonName"
         app:layout_constraintStart_toStartOf="parent"
@@ -24,8 +25,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="100dp"
-        android:layout_marginTop="76dp"
+        android:layout_marginTop="85dp"
         android:ems="10"
+        android:gravity="center"
         android:hint="Password"
         android:inputType="textPersonName"
         app:layout_constraintStart_toStartOf="parent"
@@ -36,8 +38,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="100dp"
-        android:layout_marginTop="68dp"
+        android:layout_marginTop="85dp"
         android:ems="10"
+        android:gravity="center"
         android:hint="Confirm Password"
         android:inputType="textPassword"
         app:layout_constraintStart_toStartOf="parent"
@@ -47,9 +50,23 @@
         android:id="@+id/buttonCreateAccount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="112dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginStart="120dp"
+        android:layout_marginTop="85dp"
         android:text="Create Account"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextPasswordConfirm" />
+
+    <TextView
+        android:id="@+id/textViewInvalidPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="2dp"
+        app:layout_constraintBottom_toTopOf="@+id/buttonCreateAccount"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextPasswordConfirm"
+        app:layout_constraintVertical_bias="0.524" />
 </androidx.constraintlayout.widget.ConstraintLayout>

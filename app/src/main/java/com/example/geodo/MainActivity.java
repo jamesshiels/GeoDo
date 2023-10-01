@@ -1,13 +1,12 @@
 package com.example.geodo;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import static java.lang.String.valueOf;
 
+import android.Manifest;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,19 +14,33 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.GridView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.parse.ParseObject;
+import com.parse.ParseUser;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    static ArrayList<String> notes = new ArrayList<>();
+    public static List<Model> preferencesModelList;
+    static ArrayList<String> notesTitles = new ArrayList<>();
+    static ArrayList<String> notesDescriptions = new ArrayList<>();
     static ArrayAdapter arrayAdapter;
+    Model note;
+    TaskSharedPreferences preferences;
+    public String noteId;
+    public GridView gridView;
+    private static final int REQUEST_CODE_PERMISSIONS = 1;
+    private static final String[] REQUIRED_PERMISSIONS = { Manifest.permission.READ_EXTERNAL_STORAGE };
+    FloatingActionButton fabAdd;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -43,7 +56,17 @@ public class MainActivity extends AppCompatActivity {
         if(item.getItemId() == R.id.add_note){
             Intent intent = new Intent(getApplicationContext(), NoteEditorActivity.class);
             startActivity(intent);
-
+            return true;
+        }
+        else if(item.getItemId() == R.id.settings){
+            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        else if(item.getItemId() == R.id.log_out){
+            Intent intent = new Intent(MainActivity.this, SignInActivity.class);
+            startActivity(intent);
+            finish();
             return true;
         }
         return false;
@@ -52,54 +75,51 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.test);
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
+        }
+        // Start over due note service
+        Intent serviceIntent = new Intent(this, CheckNoteDueDate.class);
+        startService(serviceIntent);
 
-        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("com.example.geodo", Context.MODE_PRIVATE);
-        HashSet<String> set = (HashSet<String>) sharedPreferences.getStringSet("notes", null);
+        preferences = new TaskSharedPreferences(this);
+        noteId = valueOf(preferences.getAllNotes().size());
 
-        if(set == null){
-            notes.add("Test note");
-        }else{
-            notes = new ArrayList(set);
+        FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
+        String loginName = ParseUser.getCurrentUser().getUsername();
+
+        preferencesModelList = preferences.getAllNotes();
+
+        notesTitles.clear();
+        notesDescriptions.clear();
+        for(Model note : preferencesModelList){
+            if(note == null) {
+                break;
+            }
+            Back4AppHelper back4AppHelper = new Back4AppHelper();
+            back4AppHelper.updateNoteInBack4App(note);
+            String newNote = note.getTitle()+"\n"+"\n"+note.getDescription();
+            notesTitles.add(newNote);
+            notesDescriptions.add(note.getDescription());
         }
 
-        TextView txtView = (TextView) findViewById(R.id.textViewLogOut);
-        Intent intent = getIntent();
-        String loginName = intent.getStringExtra("Name");
-        txtView.setText("Welcome, " + loginName + "!" + " Click here to Log Out!");
-
-        for(String b : notes){
-            String c = b;
-            ParseObject firstObject = new ParseObject("TEST");
-            firstObject.put("message", c);
-
-            firstObject.saveInBackground(e -> {
-                if(e != null){
-                    Toast.makeText(this, "Fail" + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-
-
-
-        ListView listView = (ListView) findViewById(R.id.listView);
-        notes.add("Test test");
-
-        arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, notes);
-
-        listView.setAdapter(arrayAdapter);
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        gridView = (GridView) findViewById(R.id.gridView);
+        arrayAdapter = new ArrayAdapter(this, R.layout.list_item, notesTitles);
+        gridView.setAdapter(arrayAdapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent intent = new Intent(getApplicationContext(), NoteEditorActivity.class);
+                System.out.print("Main activity in onclick Note ID: " + i);
                 intent.putExtra("noteID" , i);
                 startActivity(intent);
             }
         });
 
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
 
@@ -112,12 +132,27 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                notes.remove(noteToDelete);
+                                // Delete note from preferences
+                                notesTitles.remove(noteToDelete);
+                                notesDescriptions.remove(noteToDelete);
                                 arrayAdapter.notifyDataSetChanged();
+                                preferences.deleteNoteById(valueOf(noteToDelete));
 
-                                SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("com.example.geodo", Context.MODE_PRIVATE);
-                                HashSet<String> set = new HashSet<>(MainActivity.notes);
-                                sharedPreferences.edit().putStringSet("notes", set).apply();
+                                // Delete note from Back4App
+                                Back4AppHelper back4AppHelper = new Back4AppHelper();
+                                back4AppHelper.deleteNoteOnBack4App(valueOf(noteToDelete));
+                                List<Model> models = preferences.getAllNotes();
+                                for(Model m : models){
+                                    // turn string to int
+                                    int id = Integer.parseInt(m.getId());
+                                    if(id > noteToDelete){
+                                        // decrement id
+                                        id--;
+                                        m.setId(valueOf(id));
+                                        preferences.saveNote(m);
+                                    }
+                                    System.out.println("Note ID: " + m.getId());
+                                }
                             }
                         })
                         .setNegativeButton("No", null)
@@ -127,11 +162,38 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Add note button
+        fabAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), NoteEditorActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
-    public void logOutOK(View view){
-        Intent intent = new Intent(MainActivity.this, SignInActivity.class);
-        startActivity(intent);
-        finish();
+    //  Everytime the app is resumed, the notes are uploaded and updated
+    public void uploadNotes(){
+        List<Model> modelList = preferences.getAllNotes();
+        for(Model b : modelList){
+            Model c = b;
+            ParseObject firstObject = new ParseObject("Notes");
+            firstObject.put("Id", c.getId());
+            firstObject.put("user", c.getUserName());
+            firstObject.put("title", c.getTitle());
+            firstObject.put("description", c.getDescription());
+            firstObject.put("latitude", c.getLatitude().toString());
+            firstObject.put("longitude", c.getLongitude().toString());
+            firstObject.put("date", c.getDueDate());
+            firstObject.put("image", c.getImage());
+
+            firstObject.saveInBackground(e -> {
+                if(e != null){
+                    Toast.makeText(this, "Fail: " + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+        }
     }
+    
+
 }

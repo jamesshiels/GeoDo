@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">GeoDo</string>
     <string name="back4app_server_url">https://parseapi.back4app.com/</string>
-    <string name="back4app_app_id">s9VA28pb92as5jXxIRC16DwY4rX7qJvbptWB9T7d</string>
-    <string name="back4app_client_key">Dk8dwuQE49Uzz96CDdaCTHZmLxjS2a0vJaGzxQ79</string>
+    <string name="back4app_app_id">abc</string>
+    <string name="back4app_client_key">abc</string>
+    <string name="title_activity_maps">MapsActivity</string>
 </resources>

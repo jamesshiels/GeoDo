@@ -1,18 +1,19 @@
 package com.example.geodo;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.parse.ParseUser;
 
 public class SignInActivity extends AppCompatActivity {
-
+TextView invalidText;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -20,6 +21,7 @@ public class SignInActivity extends AppCompatActivity {
 
         EditText usernameText = (EditText) findViewById(R.id.editTextUsername);
         EditText passwordText = (EditText) findViewById(R.id.editTextSignInPassword);
+        invalidText = (TextView) findViewById(R.id.textViewInvalid);
         Button buttonLogIn = (Button) findViewById(R.id.buttonLogIn);
 
         buttonLogIn.setOnClickListener(new View.OnClickListener() {
@@ -41,7 +43,7 @@ public class SignInActivity extends AppCompatActivity {
                 startActivity(intent);
            }else{
                ParseUser.logOut();
-               Toast.makeText(SignInActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+               invalidText.setText("Invalid Username or Password");
            }
         });
     }
