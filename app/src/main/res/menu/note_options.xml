@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/delete_note" android:title="Delete note"></item>
+    <item android:id="@+id/create_geofence" android:title="Create location reminder"></item>
+    <item android:id="@+id/set_date" android:title="Set a due date"></item>
+    <item android:id="@+id/set_picture" android:title="Choose a picture"></item>
+    <item android:id="@+id/save_note" android:title="Save the note"></item>
+</menu>
